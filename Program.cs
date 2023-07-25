@@ -1,4 +1,6 @@
 using HoneyRaesAPI.Models;
+var builder = WebApplication.CreateBuilder(args);
+
 
 List<Customer> customers = new List<Customer>
 {
@@ -22,30 +24,30 @@ List<Customer> customers = new List<Customer>
     }
 
 };
-List<Employee> employees = new List<Employee>
+List<Employee> employees = new List<Employee>()
 {
-    new Employee()
+    new Employee
     {
         Id = 1,
         Name = "Employee 1",
         Specialty = "Bugs"
     },
-    new Employee()
+    new Employee
     {
         Id = 2,
         Name = "Employee 2",
         Specialty = "HTML"
     },
-    new Employee()
+    new Employee
     {
         Id = 3,
         Name = "Employee 3",
         Specialty = "C#"
     },
 };
-List<ServiceTicket> serviceTickets = new List<ServiceTicket>
+List<ServiceTicket> serviceTickets = new List<ServiceTicket>()
 {
-    new ServiceTicket()
+    new ServiceTicket
     {
         Id=1,
         CustomerId=1,
@@ -54,7 +56,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         Emergency=false,
         DateCompleted=new DateTime()
     },
-    new ServiceTicket()
+    new ServiceTicket
     {
         Id=2,
         CustomerId=2,
@@ -63,7 +65,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         Emergency=false,
         DateCompleted=new DateTime()
     },
-    new ServiceTicket()
+    new ServiceTicket
     {
         Id=3,
         CustomerId=3,
@@ -72,7 +74,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         Emergency=true,
         DateCompleted=new DateTime()
     },
-    new ServiceTicket()
+    new ServiceTicket
     {
         Id=4,
         CustomerId=1,
@@ -81,7 +83,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         Emergency=false,
         DateCompleted=new DateTime(2023,05,31)
     },
-    new ServiceTicket()
+    new ServiceTicket
     {
         Id=5,
         CustomerId=2,
@@ -92,9 +94,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
     }
 };
 
-
-var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddControllers();
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -111,10 +111,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
 
 app.MapGet("/servicetickets", () =>
 {
@@ -123,12 +119,25 @@ app.MapGet("/servicetickets", () =>
 
 app.MapGet("/servicetickets/{id}", (int id) =>
 {
+    foreach (var t in serviceTickets)
+    {
+        t.Employee = null;
+}
+    foreach (var e in employees)
+    {
+        e.ServiceTickets = null;
+    }
+    foreach (var c in customers)
+    {
+        c.ServiceTickets = null;
+    }
     ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
     if (serviceTicket == null)
     {
         return Results.NotFound();
     }
     serviceTicket.Employee = employees.FirstOrDefault(e => e.Id == serviceTicket.EmployeeId);
+    serviceTicket.Customer = customers.FirstOrDefault(e => e.Id == serviceTicket.CustomerId);
     return Results.Ok(serviceTicket);
 });
 
@@ -144,6 +153,14 @@ app.MapGet("/customers", () =>
 
 app.MapGet("/employees/{id}", (int id) =>
 {
+    foreach (var t in serviceTickets)
+    {
+        t.Employee = null;
+    }
+    foreach (var e in employees)
+    {
+        e.ServiceTickets = null;
+    }
     Employee employee = employees.FirstOrDefault(e => e.Id == id);
     if (employee == null)
     {
@@ -155,18 +172,33 @@ app.MapGet("/employees/{id}", (int id) =>
 
 app.MapGet("/customers/{id}", (int id) =>
 {
+    foreach (var t in serviceTickets)
+    {
+        t.Customer = null;
+    }
+    foreach (var c in customers)
+    {
+        c.ServiceTickets = null;
+    }
     Customer customer = customers.FirstOrDefault(c => c.Id == id);
     if (customer == null)
     {
         return Results.NotFound();
     }
+    customer.ServiceTickets = serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
+});
+
+app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
+{
+    // creates a new id (When we get to it later, our SQL database will do this for us like JSON Server did!)
+    serviceTicket.Id = serviceTickets.Max(st => st.Id) + 1;
+    serviceTickets.Add(serviceTicket);
+    return serviceTicket;
 });
 
 app.Run();
 
-internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+
+
 
