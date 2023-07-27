@@ -197,10 +197,11 @@ app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
     return serviceTicket;
 });
 
-app.MapDelete("/servicetickets{id}", (int id) =>
+app.MapDelete("/servicetickets/{id}", (int id) =>
 {
     ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
     serviceTickets.Remove(serviceTicket);
+    return Results.Ok(serviceTickets);
 });
 
 app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
