@@ -60,7 +60,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>()
         EmployeeId=0,
         Description="Ticket 1",
         Emergency=false,
-        DateCompleted=new DateTime()
+        DateCompleted= DateTime.MinValue
     },
     new ServiceTicket
     {
@@ -69,7 +69,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>()
         EmployeeId=0,
         Description="Ticket 2",
         Emergency=false,
-        DateCompleted=new DateTime()
+        DateCompleted= DateTime.MinValue
     },
     new ServiceTicket
     {
@@ -78,7 +78,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>()
         EmployeeId=3,
         Description="Ticket 3",
         Emergency=true,
-        DateCompleted= new DateTime()
+        DateCompleted= DateTime.MinValue
     },
     new ServiceTicket
     {
@@ -97,6 +97,23 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>()
         Description="Ticket 5",
         Emergency=true,
         DateCompleted=new DateTime(2023,02,14)
+    },
+    new ServiceTicket
+    {
+        Id=6,
+        CustomerId=3,
+        EmployeeId=3,
+        Description="Ticket 6",
+        Emergency=false,
+        DateCompleted= DateTime.MinValue
+    },
+    new ServiceTicket 
+    {   Id=7,
+        CustomerId=2,
+        EmployeeId=1,
+        Description="Ticket 7",
+        Emergency=false,
+        DateCompleted=new DateTime(2021,07,31)
     }
 };
 
@@ -235,7 +252,7 @@ app.MapPost("/servicetickets/{id}/complete", (int id) =>
 
 app.MapGet("/servicetickets/emergencies", () =>
 {
-    List<ServiceTicket> emergencies = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted == new DateTime()).ToList();
+    List<ServiceTicket> emergencies = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted == DateTime.MinValue).ToList();
     return emergencies;
 });
 
@@ -247,9 +264,41 @@ app.MapGet("/servicetickets/unassigned", () =>
 
 app.MapGet("/employees/available", () =>
 {
-    List<ServiceTicket> incomplete = serviceTickets.Where(st => st.DateCompleted == new DateTime()).ToList();
-    // List<Employee> available = employees.Where(e => e.Id != incomplete.EmpoloyeeId).ToList();
-    //return available;
+    List<ServiceTicket> incomplete = serviceTickets.Where(st => st.DateCompleted == DateTime.MinValue).ToList();
+    List<Employee> available = employees.Where(e => !incomplete.Exists(item => item.EmployeeId == e.Id)).ToList();
+    return available;
+});
+
+app.MapGet("/employees/{empId}/customers", (int empId) =>
+{
+    List<ServiceTicket> employeesTickets = serviceTickets.Where(st => st.EmployeeId == empId).ToList();
+    List<int> custIds = employeesTickets.Select(et => et.CustomerId).ToList();
+    return customers.Where(c => custIds.Contains(c.Id)).ToList();
+});
+
+app.MapGet("/servicetickets/review", () =>
+{
+    List<ServiceTicket> pastReview = serviceTickets.Where(st => st.DateCompleted != DateTime.MinValue).OrderBy(st => st.DateCompleted).ToList();
+    return pastReview;
+});
+
+app.MapGet("/servicetickets/priority", () =>
+{
+    List<ServiceTicket> priority = serviceTickets.Where(st => st.DateCompleted == DateTime.MinValue).OrderByDescending(st => st.Emergency).ThenBy(st => st.EmployeeId).ToList();
+    return priority;
+});
+
+app.MapGet("/servicetickets/empofmonth", () =>
+{
+    List<ServiceTicket> currentMonthTix = serviceTickets.Where(st => st.DateCompleted == st.DateCompleted - TimeSpan.FromDays(30)).ToList();
+    return currentMonthTix;
+});
+
+app.MapGet("/servicetickets/inactive", () =>
+{
+    //List<ServiceTicket> yearOldTix = serviceTickets.Where(st => DateTime.Compare(st.DateCompleted, st.DateCompleted.AddYears(1))).ToList();
+    //List<int> custIds = yearOldTix.Select(t => t.CustomerId).ToList();
+    //return customers.Where(c => custIds.Contains(c.Id)).ToList();
 });
 
 app.Run();
