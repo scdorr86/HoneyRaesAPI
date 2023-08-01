@@ -21,6 +21,12 @@ List<Customer> customers = new List<Customer>
         Id = 3,
         Name = "Customer 3",
         Address = "123 cusomter 3 way"
+    },
+    new Customer()
+    {
+        Id = 4,
+        Name = "Customer 4",
+        Address = "123 cusomter 4 way"
     }
 
 };
@@ -114,7 +120,15 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>()
         Description="Ticket 7",
         Emergency=false,
         DateCompleted=new DateTime(2021,07,31)
-    }
+    },
+    new ServiceTicket
+    {   Id=8,
+        CustomerId=4,
+        EmployeeId=1,
+        Description="Ticket 8",
+        Emergency=false,
+        DateCompleted=new DateTime(2020,01,31)
+    },
 };
 
 builder.Services.AddControllers();
@@ -290,15 +304,19 @@ app.MapGet("/servicetickets/priority", () =>
 
 app.MapGet("/servicetickets/empofmonth", () =>
 {
-    List<ServiceTicket> currentMonthTix = serviceTickets.Where(st => st.DateCompleted == st.DateCompleted - TimeSpan.FromDays(30)).ToList();
+    List<ServiceTicket> currentMonthTix = serviceTickets.Where(st => st.DateCompleted < st.DateCompleted - TimeSpan.FromDays(30)).ToList();
     return currentMonthTix;
 });
 
 app.MapGet("/servicetickets/inactive", () =>
 {
-    //List<ServiceTicket> yearOldTix = serviceTickets.Where(st => DateTime.Compare(st.DateCompleted, st.DateCompleted.AddYears(1))).ToList();
-    //List<int> custIds = yearOldTix.Select(t => t.CustomerId).ToList();
-    //return customers.Where(c => custIds.Contains(c.Id)).ToList();
+    var customerTix = serviceTickets.GroupBy((ticket) => ticket.CustomerId).ToList();
+    var custIds = customerTix
+    .Select(custTick => new {mostRecentDate = custTick.Max(ticket => ticket.DateCompleted), customerId = custTick.Key }) //select gives me the specified data that i want or need back
+    .Where(resultOfSelect => resultOfSelect.mostRecentDate.AddYears(1) < DateTime.Now && resultOfSelect.mostRecentDate != DateTime.MinValue) // where gives me the data that is true based on a condition i set
+    .Select(resultofWhere => resultofWhere.customerId)
+    .ToList();
+    return customers.Where(c => custIds.Contains(c.Id)).ToList(); 
 });
 
 app.Run();
