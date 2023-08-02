@@ -129,6 +129,30 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>()
         Emergency=false,
         DateCompleted=new DateTime(2020,01,31)
     },
+    new ServiceTicket
+    {   Id=9,
+        CustomerId=4,
+        EmployeeId=2,
+        Description="Ticket 9",
+        Emergency=false,
+        DateCompleted=new DateTime(2023,08,02)
+    },
+    new ServiceTicket
+    {   Id=10,
+        CustomerId=4,
+        EmployeeId=1,
+        Description="Ticket 10",
+        Emergency=false,
+        DateCompleted=new DateTime(2023,08,02)
+    },
+    new ServiceTicket
+    {   Id=11,
+        CustomerId=4,
+        EmployeeId=1,
+        Description="Ticket 11",
+        Emergency=false,
+        DateCompleted=new DateTime(2023,08,01)
+    },
 };
 
 builder.Services.AddControllers();
@@ -304,13 +328,19 @@ app.MapGet("/servicetickets/priority", () =>
 
 app.MapGet("/servicetickets/empofmonth", () =>
 {
-    List<ServiceTicket> currentMonthTix = serviceTickets.Where(st => st.DateCompleted < st.DateCompleted - TimeSpan.FromDays(30)).ToList();
-    return currentMonthTix;
+    var currentMonth = DateTime.Now.Month;
+    List<ServiceTicket> currentMonthTix = serviceTickets.Where(st => st.DateCompleted.Month == currentMonth).ToList();
+    var empCurrentTix = currentMonthTix.GroupBy(tick => tick.EmployeeId)
+    .Select(tick => new { empId = tick.Key, count = tick.Count() })
+    .OrderByDescending(resultOfSelect => resultOfSelect.count)
+    .FirstOrDefault();
+   
+    return employees.Where(e => empCurrentTix.empId == e.Id);
 });
 
 app.MapGet("/servicetickets/inactive", () =>
 {
-    var customerTix = serviceTickets.GroupBy((ticket) => ticket.CustomerId).ToList();
+    var customerTix = serviceTickets.GroupBy(ticket => ticket.CustomerId).ToList();
     var custIds = customerTix
     .Select(custTick => new {mostRecentDate = custTick.Max(ticket => ticket.DateCompleted), customerId = custTick.Key }) //select gives me the specified data that i want or need back
     .Where(resultOfSelect => resultOfSelect.mostRecentDate.AddYears(1) < DateTime.Now && resultOfSelect.mostRecentDate != DateTime.MinValue) // where gives me the data that is true based on a condition i set
