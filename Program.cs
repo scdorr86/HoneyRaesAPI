@@ -1,4 +1,6 @@
 using HoneyRaesAPI.Models;
+using Microsoft.AspNetCore.Mvc;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -279,7 +281,7 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
         return Results.BadRequest();
     }
     serviceTickets[ticketIndex] = serviceTicket;
-    return Results.Ok();
+    return Results.Ok(serviceTickets);
 });
 
 app.MapPost("/servicetickets/{id}/complete", (int id) =>

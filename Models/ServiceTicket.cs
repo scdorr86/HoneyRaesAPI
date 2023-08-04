@@ -1,4 +1,6 @@
-﻿namespace HoneyRaesAPI.Models
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace HoneyRaesAPI.Models
 {
     public class ServiceTicket
     {
