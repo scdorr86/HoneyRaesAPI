@@ -252,6 +252,14 @@ app.MapGet("/customers/{id}", (int id) =>
     return Results.Ok(customer);
 });
 
+app.MapPost("/employees", (Employee employee) =>
+{
+    // creates a new id (When we get to it later, our SQL database will do this for us like JSON Server did!)
+    employee.Id = employees.Max(e => e.Id) + 1;
+    employees.Add(employee);
+    return employees;
+});
+
 app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 {
     // creates a new id (When we get to it later, our SQL database will do this for us like JSON Server did!)
