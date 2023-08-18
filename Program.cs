@@ -260,6 +260,14 @@ app.MapPost("/employees", (Employee employee) =>
     return employees;
 });
 
+app.MapPost("/customers", (Customer customer) =>
+{
+    // creates a new id (When we get to it later, our SQL database will do this for us like JSON Server did!)
+    customer.Id = customers.Max(c => c.Id) + 1;
+    customers.Add(customer);
+    return customers;
+});
+
 app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 {
     // creates a new id (When we get to it later, our SQL database will do this for us like JSON Server did!)
@@ -273,6 +281,20 @@ app.MapDelete("/servicetickets/{id}", (int id) =>
     ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
     serviceTickets.Remove(serviceTicket);
     return Results.Ok(serviceTickets);
+});
+
+app.MapDelete("/employees/{id}", (int id) =>
+{
+    Employee employeeToDelete = employees.FirstOrDefault(e => e.Id == id);
+    employees.Remove(employeeToDelete);
+    return Results.Ok(employees);
+});
+
+app.MapDelete("/customers/{id}", (int id) =>
+{
+    Customer customerToDelete = customers.FirstOrDefault(c => c.Id == id);
+    customers.Remove(customerToDelete);
+    return Results.Ok(customers);
 });
 
 app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
