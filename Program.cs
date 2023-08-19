@@ -299,18 +299,18 @@ app.MapDelete("/customers/{id}", (int id) =>
 
 app.MapPut("/employees/{id}", (int id, Employee employee) =>
 {
-    Employee employeeToUpdate = serviceTickets.FirstOrDefault(st => st.Id == id);
-    int ticketIndex = serviceTickets.IndexOf(ticketToUpdate);
-    if (ticketToUpdate == null)
+    Employee employeeToUpdate = employees.FirstOrDefault(st => st.Id == id);
+    int employeeIndex = employees.IndexOf(employeeToUpdate);
+    if (employeeToUpdate == null)
     {
         return Results.NotFound();
     }
     //the id in the request route doesn't match the id from the ticket in the request body. That's a bad request!
-    if (id != serviceTicket.Id)
+    if (id != employee.Id)
     {
         return Results.BadRequest();
     }
-    serviceTickets[ticketIndex] = serviceTicket;
+    employees[ticketIndex] = employee;
     return Results.Ok(employees);
 });
 
