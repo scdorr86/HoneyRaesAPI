@@ -310,7 +310,7 @@ app.MapPut("/employees/{id}", (int id, Employee employee) =>
     {
         return Results.BadRequest();
     }
-    employees[ticketIndex] = employee;
+    employees[employeeIndex] = employee;
     return Results.Ok(employees);
 });
 
